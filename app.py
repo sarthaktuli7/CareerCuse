@@ -1,17 +1,14 @@
 """
 CareerCuse - Syracuse Career Services & Job Placement Tracker
 IST659 Team Project | Spring 2026
-Run: streamlit run app.py
 """
 
 import streamlit as st
-import pyodbc
+import pymssql
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import date
-import urllib
-import sqlalchemy
 
 st.set_page_config(
     page_title="CareerCuse",
@@ -21,64 +18,46 @@ st.set_page_config(
 )
 
 @st.cache_resource
-def get_engine():
+def get_connection():
     try:
         server   = st.secrets["azure"]["server"]
         database = st.secrets["azure"]["database"]
         username = st.secrets["azure"]["username"]
         password = st.secrets["azure"]["password"]
     except:
-        server   = "careercuse.database.windows.net,1433"
+        server   = "careercuse.database.windows.net"
         database = "careercuse"
         username = "stuli01"
         password = "Sar123thak@"
 
-    # Use pymssql driver which is pre-installed on Streamlit Cloud
-    try:
-        import pymssql
-        server_clean = server.replace(",1433", "")
-        conn = pymssql.connect(
-            server=server_clean,
-            user=username,
-            password=password,
-            database=database
-        )
-        return conn
-    except:
-        # Fall back to pyodbc for local Windows
-        params = urllib.parse.quote_plus(
-            f"DRIVER={{ODBC Driver 18 for SQL Server}};"
-            f"SERVER={server};"
-            f"DATABASE={database};"
-            f"UID={username};"
-            f"PWD={password};"
-            f"Encrypt=yes;"
-            f"TrustServerCertificate=no;"
-        )
-        return sqlalchemy.create_engine(
-            f"mssql+pyodbc:///?odbc_connect={params}",
-            pool_pre_ping=True
-        )
+    return pymssql.connect(
+        server=server,
+        user=username,
+        password=password,
+        database=database,
+        port=1433
+    )
 
 def run_query(sql, params=None):
-    engine = get_engine()
+    conn = get_connection()
     try:
-        return pd.read_sql(sql, engine)
+        return pd.read_sql(sql, conn)
     except Exception as e:
         st.error(f"Query error: {e}")
         return pd.DataFrame()
 
 def run_exec(sql, params=None):
-    engine = get_engine()
+    conn = get_connection()
+    cursor = conn.cursor()
     try:
-        cursor = engine.cursor()
         if params:
             cursor.execute(sql, params)
         else:
             cursor.execute(sql)
-        engine.commit()
+        conn.commit()
         return True, "Success"
     except Exception as e:
+        conn.rollback()
         return False, str(e)
 
 # ── Sidebar nav ───────────────────────────────────────────────────────────────
