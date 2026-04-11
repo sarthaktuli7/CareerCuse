@@ -28,7 +28,7 @@ def get_connection():
         server   = "careercuse.database.windows.net"
         database = "careercuse"
         username = "stuli01"
-        password = "Sar123thak@"
+        password = "Sar789thak#"
 
     return pymssql.connect(
         server=server,
