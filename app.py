@@ -1,3 +1,9 @@
+"""
+CareerCuse - Syracuse Career Services & Job Placement Tracker
+IST659 Team Project | Spring 2026
+Run: streamlit run app.py
+"""
+
 import streamlit as st
 import pyodbc
 import pandas as pd
@@ -62,29 +68,6 @@ def run_exec(sql, params=None):
         return True, "Success"
     except Exception as e:
         return False, str(e)
-def run_query(sql, params=None):
-    conn = get_connection()
-    try:
-        if params:
-            return pd.read_sql(sql, conn, params=params)
-        return pd.read_sql(sql, conn)
-    except Exception as e:
-        st.error(f"Query error: {e}")
-        return pd.DataFrame()
-
-def run_exec(sql, params=None):
-    conn = get_connection()
-    cursor = conn.cursor()
-    try:
-        if params:
-            cursor.execute(sql, params)
-        else:
-            cursor.execute(sql)
-        conn.commit()
-        return True, "Success"
-    except Exception as e:
-        conn.rollback()
-        return False, str(e)
 
 # ── Sidebar nav ───────────────────────────────────────────────────────────────
 try:
@@ -106,8 +89,9 @@ st.sidebar.divider()
 st.sidebar.caption("IST659 Team Project · Spring 2026")
 
 
-# PAGE 1DASHBOARD
-
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE 1 — DASHBOARD
+# ══════════════════════════════════════════════════════════════════════════════
 if page == "Dashboard":
     st.title("📊 CareerCuse Analytics Dashboard")
     st.caption("Placement trends, pipeline health, and employer insights for Syracuse University")
@@ -222,8 +206,9 @@ if page == "Dashboard":
                        f"{row['Placed']} of {row['Total']} students")
 
 
-# PAGE 2 STUDENTS
-
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE 2 — STUDENTS
+# ══════════════════════════════════════════════════════════════════════════════
 elif page == "Students":
     st.title("🎓 Student Management")
 
@@ -313,9 +298,9 @@ elif page == "Students":
                     st.error(f"Error: {msg}")
 
 
-
-# PAGE 3 JOBS & EMPLOYERS
-
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE 3 — JOBS & EMPLOYERS
+# ══════════════════════════════════════════════════════════════════════════════
 elif page == "Jobs & Employers":
     st.title("🏢 Jobs & Employers")
 
@@ -372,8 +357,9 @@ elif page == "Jobs & Employers":
         st.dataframe(df_emp, use_container_width=True, height=420)
 
 
-# PAGE 4  APPLICATIONS
-
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE 4 — APPLICATIONS
+# ══════════════════════════════════════════════════════════════════════════════
 elif page == "Applications":
     st.title("📋 Application Pipeline")
 
@@ -462,9 +448,9 @@ elif page == "Applications":
                 st.error(f"Error: {msg}")
 
 
-
-# PAGE 5 CAREER EVENTS
-
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE 5 — CAREER EVENTS
+# ══════════════════════════════════════════════════════════════════════════════
 elif page == "Career Events":
     st.title("📅 Career Events")
 
