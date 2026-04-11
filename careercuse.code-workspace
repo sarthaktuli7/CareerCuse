@@ -1,0 +1,19 @@
+{
+  "folders": [
+    {
+      "name": "CareerCuse — IST659",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "workbench.colorTheme": "Default Dark Modern",
+    "explorer.sortOrder": "type"
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-mssql.mssql",
+      "ms-python.python",
+      "ms-python.vscode-pylance"
+    ]
+  }
+}
