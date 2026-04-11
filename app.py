@@ -33,25 +33,37 @@ def get_engine():
         username = "stuli01"
         password = "Sar123thak@"
 
-    params = urllib.parse.quote_plus(
-        f"DRIVER={{ODBC Driver 18 for SQL Server}};"
-        f"SERVER={server};"
-        f"DATABASE={database};"
-        f"UID={username};"
-        f"PWD={password};"
-        f"Encrypt=yes;"
-        f"TrustServerCertificate=no;"
-    )
-    return sqlalchemy.create_engine(
-        f"mssql+pyodbc:///?odbc_connect={params}",
-        pool_pre_ping=True
-    )
+    # Use pymssql driver which is pre-installed on Streamlit Cloud
+    try:
+        import pymssql
+        server_clean = server.replace(",1433", "")
+        conn = pymssql.connect(
+            server=server_clean,
+            user=username,
+            password=password,
+            database=database
+        )
+        return conn
+    except:
+        # Fall back to pyodbc for local Windows
+        params = urllib.parse.quote_plus(
+            f"DRIVER={{ODBC Driver 18 for SQL Server}};"
+            f"SERVER={server};"
+            f"DATABASE={database};"
+            f"UID={username};"
+            f"PWD={password};"
+            f"Encrypt=yes;"
+            f"TrustServerCertificate=no;"
+        )
+        return sqlalchemy.create_engine(
+            f"mssql+pyodbc:///?odbc_connect={params}",
+            pool_pre_ping=True
+        )
 
 def run_query(sql, params=None):
     engine = get_engine()
     try:
-        with engine.connect() as conn:
-            return pd.read_sql(sqlalchemy.text(sql), conn)
+        return pd.read_sql(sql, engine)
     except Exception as e:
         st.error(f"Query error: {e}")
         return pd.DataFrame()
@@ -59,12 +71,12 @@ def run_query(sql, params=None):
 def run_exec(sql, params=None):
     engine = get_engine()
     try:
-        with engine.connect() as conn:
-            if params:
-                conn.execute(sqlalchemy.text(sql), params)
-            else:
-                conn.execute(sqlalchemy.text(sql))
-            conn.commit()
+        cursor = engine.cursor()
+        if params:
+            cursor.execute(sql, params)
+        else:
+            cursor.execute(sql)
+        engine.commit()
         return True, "Success"
     except Exception as e:
         return False, str(e)
