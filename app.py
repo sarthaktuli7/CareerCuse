@@ -1,15 +1,11 @@
-"""
-CareerCuse - Syracuse Career Services & Job Placement Tracker
-IST659 Team Project | Spring 2026
-
-"""
-
 import streamlit as st
 import pyodbc
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import date
+import urllib
+import sqlalchemy
 
 st.set_page_config(
     page_title="CareerCuse",
@@ -19,18 +15,53 @@ st.set_page_config(
 )
 
 @st.cache_resource
-def get_connection():
-    conn_str = (
-        "DRIVER={ODBC Driver 18 for SQL Server};"
-        "SERVER=careercuse.database.windows.net,1433;"
-        "DATABASE=careercuse;"
-        "UID=stuli01;"
-        "PWD=Sar123thak@;"
-        "Encrypt=yes;"
-        "TrustServerCertificate=no;"
-    )
-    return pyodbc.connect(conn_str)
+def get_engine():
+    try:
+        server   = st.secrets["azure"]["server"]
+        database = st.secrets["azure"]["database"]
+        username = st.secrets["azure"]["username"]
+        password = st.secrets["azure"]["password"]
+    except:
+        server   = "careercuse.database.windows.net,1433"
+        database = "careercuse"
+        username = "stuli01"
+        password = "Sar123thak@"
 
+    params = urllib.parse.quote_plus(
+        f"DRIVER={{ODBC Driver 18 for SQL Server}};"
+        f"SERVER={server};"
+        f"DATABASE={database};"
+        f"UID={username};"
+        f"PWD={password};"
+        f"Encrypt=yes;"
+        f"TrustServerCertificate=no;"
+    )
+    return sqlalchemy.create_engine(
+        f"mssql+pyodbc:///?odbc_connect={params}",
+        pool_pre_ping=True
+    )
+
+def run_query(sql, params=None):
+    engine = get_engine()
+    try:
+        with engine.connect() as conn:
+            return pd.read_sql(sqlalchemy.text(sql), conn)
+    except Exception as e:
+        st.error(f"Query error: {e}")
+        return pd.DataFrame()
+
+def run_exec(sql, params=None):
+    engine = get_engine()
+    try:
+        with engine.connect() as conn:
+            if params:
+                conn.execute(sqlalchemy.text(sql), params)
+            else:
+                conn.execute(sqlalchemy.text(sql))
+            conn.commit()
+        return True, "Success"
+    except Exception as e:
+        return False, str(e)
 def run_query(sql, params=None):
     conn = get_connection()
     try:
