@@ -1,3 +1,6 @@
+<img width="1082" height="572" alt="image" src="https://github.com/user-attachments/assets/c65f2be4-b86e-4f98-bb98-b345225edcd5" />
+
+
 # CareerCuse
 ### Syracuse University Career Services & Job Placement Tracker
 **IST659 — Data Administration Concepts & Database Management | Spring 2026 | Section M002 | Prof. Kelvin King**
